@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Contest, ContestDocument } from "./contest.schema";
-import { Model } from "mongoose";
+import { Model, Types } from "mongoose";
 import { CreateContestDto, UpdateContestDto } from "./contest.dto";
 
 @Injectable()
@@ -10,6 +10,13 @@ export class ContestRepository {
   async createContest(contest: CreateContestDto) {
     const newContest = new this.contestModel(contest);
     return await newContest.save();
+  }
+
+  async findContestByIdWithProblems(_id: string) {
+    return await this.contestModel.findById(_id).populate({
+      path: 'problems',
+      select: '-flag'
+    });
   }
 
   async findContestById(_id: string) {
@@ -28,19 +35,16 @@ export class ContestRepository {
     return await this.contestModel.findByIdAndDelete(_id);
   }
 
-  async pushProblemToContest(_id: string, problem: string) {
-    return await this.contestModel.findByIdAndUpdate(_id, { $push: { problems: problem } }, { new: true });
-  }
-  
-  async popProblemFromContest(_id: string, problem: string) {
-    return await this.contestModel.findByIdAndUpdate(_id, { $pull: { problems: problem } }, { new: true });
+  async updateProblemInContest(_id: string, newProblems: Array<string>) {
+    const newProblemsObjectIds = newProblems.map(problem => new Types.ObjectId(problem));
+    return await this.contestModel.findByIdAndUpdate(_id, { problems: newProblemsObjectIds }, { new: true });
   }
 
-  async pushParticipantToContest(_id: string, profile: string) {
+  async pushParticipantInContest(_id: string, profile: string) {
     return await this.contestModel.findByIdAndUpdate(_id, { $push: { participants: profile } }, { new: true });
   }
 
-  async popParticipantFromContest(_id: string, profile: string) {
+  async popParticipantInContest(_id: string, profile: string) {
     return await this.contestModel.findByIdAndUpdate(_id, { $pull: { participants: profile } }, { new: true });
   }
 }

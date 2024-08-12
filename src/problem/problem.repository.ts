@@ -1,4 +1,4 @@
-import { Model, SortOrder } from "mongoose";
+import mongoose, { Model, SortOrder, Types } from "mongoose";
 import { Problem, ProblemDocument } from "./problem.schema";
 import { InjectModel } from "@nestjs/mongoose";
 import { CreateProblemDto, ProblemConditions } from "./problem.dto";
@@ -24,6 +24,11 @@ export class ProblemRepository{
     return await this.problemModel.findById(_id).select("-flag").exec();
   }
 
+  async findProblemByIds(ids: Array<string>){
+    const objIds = ids.map(id => new Types.ObjectId(id));
+    return await this.problemModel.find({ _id: { $in: objIds } }).select("-flag").exec();
+  }
+
   async findProblemByConditions(conditions: ProblemConditions){
     const { page = 1, limit = 10 } = conditions;
     const { sort = "_id", order = "asc" } = conditions;
@@ -38,6 +43,7 @@ export class ProblemRepository{
 
     return await this.problemModel.find(conditions).sort(sortOptions).skip((page - 1) * limit).limit(limit).select("-flag").exec();
   }
+
 
   async updateProblemById(_id: string, problem: Problem){
     return await this.problemModel.findByIdAndUpdate(_id, problem, { new: true });

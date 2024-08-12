@@ -19,7 +19,6 @@ export class AccountController {
   ) { }
   
   @Post()
-  @UsePipes(ValidationPipe)
   async register(@Body() createAccountDto: CreateAccountDto){
     const session = await this.connection.startSession();
     session.startTransaction();
@@ -38,7 +37,6 @@ export class AccountController {
   }
 
   @Post()
-  @UsePipes(ValidationPipe)
   @UseGuards(LocalAuthGuard)
   async registerManager(@Body() createAccountDto: CreateAccountDto, @Req() req: AuthRequest){
     const { role } = req.user;

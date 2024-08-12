@@ -15,7 +15,7 @@ export class Contest {
   description: string;
 
   @Prop({ type: [{type: Types.ObjectId, ref: 'Problem'}], required: true, default: [] })
-  problems: Problem[];
+  problems: string[];
 
   @Prop({ type: Date, required: true })
   startTime: Date;
@@ -27,10 +27,11 @@ export class Contest {
   status: ContestStatus;
 
   @Prop({ type: [{type: Types.ObjectId, ref: 'Profile'}], required: true, default: [] })
-  participants: Profile[];
+  participants: string[];
 
   @Prop({ type: Types.ObjectId, ref: 'Profile', required: true })
   organizer: Profile;
+
 }
 
 export const ContestSchema = SchemaFactory.createForClass(Contest);

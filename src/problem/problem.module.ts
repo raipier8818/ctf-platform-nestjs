@@ -4,7 +4,6 @@ import { ProblemService } from './problem.service';
 import { ProblemRepository } from './problem.repository';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ProblemSchema } from './problem.schema';
-import { SubmitModule } from 'src/submit/submit.module';
 import { ProfileModule } from 'src/profile/profile.module';
 
 @Module({
@@ -12,10 +11,10 @@ import { ProfileModule } from 'src/profile/profile.module';
     MongooseModule.forFeature([
       { name: 'Problem', schema: ProblemSchema }
     ]),
-    SubmitModule,
     ProfileModule
   ],
   controllers: [ProblemController],
-  providers: [ProblemService, ProblemRepository]
+  providers: [ProblemService, ProblemRepository],
+  exports: [ProblemService]
 })
 export class ProblemModule {}

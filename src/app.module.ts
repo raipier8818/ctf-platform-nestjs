@@ -1,8 +1,7 @@
 import { Module } from '@nestjs/common';
 import { AccountModule } from './account/account.module';
 import { AuthModule } from './auth/auth.module';
-import { ConfigModule, ConfigService, ConfigType } from '@nestjs/config';
-import jwtConfig from './config/jwt.config';
+import { ConfigModule, ConfigType } from '@nestjs/config';
 import mongooseConfig from './config/mongoose.config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AppController } from './app.controller';
@@ -10,8 +9,8 @@ import { AppService } from './app.service';
 import { ContestModule } from './contest/contest.module';
 import { ProfileModule } from './profile/profile.module';
 import { ProblemModule } from './problem/problem.module';
-import { SubmitModule } from './submit/submit.module';
 import appConfig from './config/app.config';
+import { ScoreboardModule } from './scoreboard/scoreboard.module';
 
 
 @Module({
@@ -38,7 +37,7 @@ import appConfig from './config/app.config';
     ContestModule,
     ProfileModule,
     ProblemModule,
-    SubmitModule,
+    ScoreboardModule
   ],
   controllers: [AppController],
   providers: [AppService],

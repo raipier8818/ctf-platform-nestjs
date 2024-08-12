@@ -16,6 +16,10 @@ export class ProblemService {
     return this.problemRepository.findProblemById(_id);
   }
 
+  async findProblemByIds(ids: Array<string>){
+    return this.problemRepository.findProblemByIds(ids);
+  }
+
   async findProblemByConditions(conditions: ProblemConditions){
     return this.problemRepository.findProblemByConditions(conditions);
   }

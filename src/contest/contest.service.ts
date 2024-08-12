@@ -12,6 +12,10 @@ export class ContestService {
     return await this.contestRepository.createContest(contest);
   }
 
+  async findContestByIdWithProblems(_id: string) {
+    return await this.contestRepository.findContestByIdWithProblems(_id);
+  }
+
   async findContestById(_id: string) {
     return await this.contestRepository.findContestById(_id);
   }
@@ -28,19 +32,15 @@ export class ContestService {
     return await this.contestRepository.deleteContestById(_id);
   }
 
-  async pushProblemToContest(_id: string, problem: string){
-    return await this.contestRepository.pushProblemToContest(_id, problem);
+  async updateProblemInContest(_id: string, problems: Array<string>){
+    return await this.contestRepository.updateProblemInContest(_id, problems);
   }
 
-  async popProblemFromContest(_id: string, problem: string){
-    return await this.contestRepository.popProblemFromContest(_id, problem);
+  async pushParticipantInContest(_id: string, profile: string){
+    return await this.contestRepository.pushParticipantInContest(_id, profile);
   }
 
-  async pushParticipantToContest(_id: string, profile: string){
-    return await this.contestRepository.pushParticipantToContest(_id, profile);
-  }
-
-  async popParticipantFromContest(_id: string, profile: string){
-    return await this.contestRepository.popParticipantFromContest(_id, profile);
+  async popParticipantInContest(_id: string, profile: string){
+    return await this.contestRepository.popParticipantInContest(_id, profile);
   }
 }
