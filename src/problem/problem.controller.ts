@@ -1,27 +1,36 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, Query, Req, Res, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Delete, ForbiddenException, Get, Param, Post, Put, Query, Req, UseGuards } from '@nestjs/common';
 import { ProblemService } from './problem.service';
-import { CreateProblemDto, ProblemConditions, SubmitFlagDto, UpdateProblemDto } from './problem.dto';
-import { AdminAuthGuard, LocalAuthGuard, ManagerAuthGuard } from 'src/auth/auth.guard';
+import { CreateProblemDto, ProblemConditions, ProblemInfoResponseDto, ProblemPageResponseDto, ProblemResponseDto, UpdateProblemDto } from './problem.dto';
+import { LocalAuthGuard, ManagerAuthGuard } from 'src/auth/auth.guard';
 import { AuthRequest } from 'src/auth/auth.dto';
-import { Response } from 'express';
-import { ProfileService } from 'src/profile/profile.service';
 
 @Controller('problem')
 export class ProblemController {
   constructor(
     private readonly problemService: ProblemService,
-    private readonly proflieService: ProfileService,
   ) {}
 
-  // @Get(':id')
-  // async findProblemById(@Param('id') id: string){
-  //   return this.problemService.findProblemById(id);
-  // }
+  @Get(':id')
+  @UseGuards(LocalAuthGuard)
+  async findProblemById(@Param('id') id: string, @Req() req: AuthRequest): Promise<ProblemResponseDto | ProblemInfoResponseDto>{
+    if(req.user.role === "manager"){
+      return this.problemService.findProblemById(id);
+    }
+    else if(req.user.role === "user"){
+      return this.problemService.findProblemInfoById(id);
+    }
+    else{
+      throw new ForbiddenException();
+    }
+  }
 
-  // @Get()
-  // async findProblemByConditions(@Query() conditions: ProblemConditions){
-  //   return this.problemService.findProblemByConditions(conditions);
-  // }
+  @Get()
+  @UseGuards(ManagerAuthGuard)
+  async findProblemsByConditions(@Query() conditions: ProblemConditions, @Req() req: AuthRequest): Promise<ProblemPageResponseDto>{    
+    const result = await this.problemService.findProblemsByConditions(conditions);
+    return result;
+  }
+
 
   @Post()
   @UseGuards(ManagerAuthGuard)

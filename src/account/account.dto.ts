@@ -1,4 +1,5 @@
 import { IsEmpty, IsNotEmpty, IsString, MaxLength, MinLength } from "class-validator";
+import { Role } from "./account.schema";
 
 export class CreateAccountDto {
   @IsNotEmpty()
@@ -53,4 +54,11 @@ export class DeleteAccountDto {
   @IsNotEmpty()
   @IsString()
   confirmPassword: string;
+}
+
+export class AccountResponseDto {
+  username: string;
+  email: string;
+  ip: string;
+  role: Role;
 }

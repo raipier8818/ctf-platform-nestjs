@@ -1,6 +1,5 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { Document, Types } from "mongoose";
-import { Problem } from "src/problem/problem.schema";
 import { Profile } from "src/profile/profile.schema";
 
 export type ContestDocument = Contest & Document;
@@ -30,8 +29,7 @@ export class Contest {
   participants: string[];
 
   @Prop({ type: Types.ObjectId, ref: 'Profile', required: true })
-  organizer: Profile;
-
+  organizer: string;
 }
 
 export const ContestSchema = SchemaFactory.createForClass(Contest);

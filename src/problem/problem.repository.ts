@@ -1,35 +1,39 @@
-import mongoose, { Model, SortOrder, Types } from "mongoose";
+import { Model, SortOrder, Types } from "mongoose";
 import { Problem, ProblemDocument } from "./problem.schema";
 import { InjectModel } from "@nestjs/mongoose";
-import { CreateProblemDto, ProblemConditions } from "./problem.dto";
+import { CreateProblemDto, ProblemConditions, ProblemHeaderResponseDto, ProblemInfoResponseDto, ProblemPageResponseDto, ProblemResponseDto, UpdateProblemDto } from "./problem.dto";
 
 export class ProblemRepository{
   constructor(
     @InjectModel(Problem.name) private readonly problemModel: Model<ProblemDocument>,
   ){}
   
-  async createProblem(problem: CreateProblemDto){
+  async createProblem(problem: CreateProblemDto): Promise<void>{
     try {
       const newProblem = new this.problemModel(problem);
-      return await newProblem.save();
+      await newProblem.save();
     } catch (error) {
       throw error;
     }
   }
 
-  async findProblemById(_id: string, selectFlag = false){
-    if(selectFlag){
-      return await this.problemModel.findById(_id).exec();
+  async findProblemById(_id: string): Promise<ProblemResponseDto>{
+    const query = this.problemModel.findById(new Types.ObjectId(_id));
+    const result = await query.exec();
+    return {
+      _id: result._id.toString(),
+      name: result.name,
+      description: result.description,
+      uri: result.uri,
+      score: result.score,
+      domain: result.domain,
+      difficulty: result.difficulty,
+      status: result.status,
+      flag: result.flag,
     }
-    return await this.problemModel.findById(_id).select("-flag").exec();
   }
 
-  async findProblemByIds(ids: Array<string>){
-    const objIds = ids.map(id => new Types.ObjectId(id));
-    return await this.problemModel.find({ _id: { $in: objIds } }).select("-flag").exec();
-  }
-
-  async findProblemByConditions(conditions: ProblemConditions){
+  async findProblemsByConditions(conditions: ProblemConditions): Promise<ProblemPageResponseDto>{
     const { page = 1, limit = 10 } = conditions;
     const { sort = "_id", order = "asc" } = conditions;
 
@@ -41,11 +45,41 @@ export class ProblemRepository{
     delete conditions.sort;
     delete conditions.order;
 
-    return await this.problemModel.find(conditions).sort(sortOptions).skip((page - 1) * limit).limit(limit).select("-flag").exec();
+    const result = await this.problemModel.find(conditions).skip((page - 1) * limit).limit(limit).select("-flag").sort(sortOptions).exec();
+    const total = await this.problemModel.countDocuments(conditions);
+    return {
+      limit,
+      page,
+      total,
+      problems: result.map(problem => {
+        return {
+          _id: problem._id.toString(),
+          name: problem.name,
+          domain: problem.domain,
+          difficulty: problem.difficulty,
+          status: problem.status
+        }
+      })
+    };
+  }
+
+  async findProblemInfoById(_id: string): Promise<ProblemInfoResponseDto>{
+    const query = this.problemModel.findById(new Types.ObjectId(_id));
+    const result = await query.exec();
+    return {
+      _id: result._id.toString(),
+      name: result.name,
+      description: result.description,
+      uri: result.uri,
+      score: result.score,
+      domain: result.domain,
+      difficulty: result.difficulty,
+      status: result.status,
+    }
   }
 
 
-  async updateProblemById(_id: string, problem: Problem){
+  async updateProblemById(_id: string, problem: UpdateProblemDto): Promise<void>{
     return await this.problemModel.findByIdAndUpdate(_id, problem, { new: true });
   }
 

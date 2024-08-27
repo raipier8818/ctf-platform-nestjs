@@ -66,6 +66,10 @@ export class AccountService implements OnModuleInit {
     return await this.accountRepository.deleteAccount(_id);
   }
 
+  async deleteAccountAdmin(_id: string, session?: ClientSession) {
+    return await this.accountRepository.deleteAccount(_id, session);
+  }
+
   async changePassword(_id: string, updateAccountDto: UpdateAccountDto) {
     const { password, confirmPassword, newPassword } = updateAccountDto;
     if (password.localeCompare(confirmPassword) !== 0) {
@@ -95,5 +99,9 @@ export class AccountService implements OnModuleInit {
 
   async findAccountByEmail(email: string){
     return await this.accountRepository.findAccountByEmail(email);
+  }
+
+  async findAllAccounts(){
+    return await this.accountRepository.findAllAccounts();
   }
 }

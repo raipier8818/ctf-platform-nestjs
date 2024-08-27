@@ -2,13 +2,13 @@ import { Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Scoreboard, ScoreboardDocument, UserScore } from "./scoreboard.schema";
 import { Model, Types } from "mongoose";
-import { CreateSubmissionDto } from "./scoreboard.dto";
+import { CreateSubmissionDto, ScoreboardResponseDto } from "./scoreboard.dto";
 
 @Injectable()
 export class ScoreboardRepository {
   constructor(@InjectModel(Scoreboard.name) private contestModel: Model<ScoreboardDocument>) { }
 
-  async createScoreboard(contest: string) {
+  async createScoreboard(contest: string): Promise<void> {
     const scoreboard = new this.contestModel({ contest: new Types.ObjectId(contest) });
     scoreboard.participants.map(participant => {
       const userScore: UserScore = {
@@ -27,23 +27,23 @@ export class ScoreboardRepository {
       scoreboard.userScores.set(new Types.ObjectId(participant), userScore);
     });
 
-    return await scoreboard.save();
+    await scoreboard.save();
   }
 
-  async findScoreboardByContest(contest: string) {
+  async findScoreboardByContest(contest: string) : Promise<ScoreboardResponseDto> {
     return await this.contestModel.findOne({ contest: new Types.ObjectId(contest) });
   }
 
-  async updateScoreboardByContest(contest: string, scoreboard: Scoreboard) {
-    return await this.contestModel.findOneAndUpdate({ contest: new Types.ObjectId(contest) }, scoreboard, { new: true });
+  async updateScoreboardByContest(contest: string, scoreboard: Scoreboard): Promise<void>{
+    await this.contestModel.findOneAndUpdate({ contest: new Types.ObjectId(contest) }, scoreboard, { new: true });
   }
 
-  async deleteScoreboardByContest(contest: string) {
-    return await this.contestModel.findOneAndDelete({ contest: new Types.ObjectId(contest) });
+  async deleteScoreboardByContest(contest: string): Promise<void> {
+    await this.contestModel.findOneAndDelete({ contest: new Types.ObjectId(contest) });
   }
 
-  async createSubmission(contest: string, createSubmissionDto: CreateSubmissionDto) {
-    const scoreboard = await this.findScoreboardByContest(contest);
+  async createSubmission(contest: string, createSubmissionDto: CreateSubmissionDto): Promise<void> {
+    const scoreboard = await this.contestModel.findOne({ contest: new Types.ObjectId(contest) });
     const userScore = scoreboard.userScores.get(new Types.ObjectId(createSubmissionDto.profile));
     const problemSubmission = userScore.problemSubmissions.get(new Types.ObjectId(createSubmissionDto.problem));
     if (problemSubmission.solved) {
@@ -59,6 +59,6 @@ export class ScoreboardRepository {
     scoreboard.userScores.set(new Types.ObjectId(createSubmissionDto.profile), userScore);
     scoreboard.lastUpdated = new Date();
     
-    return await this.updateScoreboardByContest(contest, scoreboard);    
+    await this.updateScoreboardByContest(contest, scoreboard);    
   }
 }

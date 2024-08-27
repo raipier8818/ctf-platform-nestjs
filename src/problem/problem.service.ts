@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ProblemRepository } from './problem.repository';
-import { CreateProblemDto, ProblemConditions } from './problem.dto';
+import { CreateProblemDto, ProblemConditions, ProblemInfoResponseDto, ProblemPageResponseDto, ProblemResponseDto, UpdateProblemDto } from './problem.dto';
 
 @Injectable()
 export class ProblemService {
@@ -8,32 +8,32 @@ export class ProblemService {
     private readonly problemRepository: ProblemRepository
   ) {} 
 
-  async createProblem(problem: CreateProblemDto){
+  async createProblem(problem: CreateProblemDto): Promise<void>{
     return this.problemRepository.createProblem(problem);
   }
 
-  async findProblemById(_id: string){
+  async findProblemById(_id: string): Promise<ProblemResponseDto>{
     return this.problemRepository.findProblemById(_id);
   }
 
-  async findProblemByIds(ids: Array<string>){
-    return this.problemRepository.findProblemByIds(ids);
+  async findProblemsByConditions(conditions: ProblemConditions): Promise<ProblemPageResponseDto>{
+    return this.problemRepository.findProblemsByConditions(conditions);
   }
 
-  async findProblemByConditions(conditions: ProblemConditions){
-    return this.problemRepository.findProblemByConditions(conditions);
+  async findProblemInfoById(_id: string): Promise<ProblemInfoResponseDto>{
+    return this.problemRepository.findProblemInfoById(_id);
   }
 
-  async updateProblemById(_id: string, problem: any){
+  async updateProblemById(_id: string, problem: UpdateProblemDto): Promise<void>{
     return this.problemRepository.updateProblemById(_id, problem);
   }
 
-  async deleteProblemById(_id: string){
-    return this.problemRepository.deleteProblemById(_id);
+  async deleteProblemById(_id: string): Promise<void>{
+    this.problemRepository.deleteProblemById(_id);
   }
 
-  async compareFlag(_id: string, flag: string){
-    const problem = await this.problemRepository.findProblemById(_id, true);
+  async compareFlag(_id: string, flag: string): Promise<boolean>{
+    const problem = await this.problemRepository.findProblemById(_id);
     
     if(!problem){
       return false;

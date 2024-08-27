@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { AccountModule } from './account/account.module';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule, ConfigType } from '@nestjs/config';
@@ -11,6 +11,8 @@ import { ProfileModule } from './profile/profile.module';
 import { ProblemModule } from './problem/problem.module';
 import appConfig from './config/app.config';
 import { ScoreboardModule } from './scoreboard/scoreboard.module';
+import { LoggerMiddleware } from './middleware/logger.middleware';
+import { DateModule } from './date/date.module';
 
 
 @Module({
@@ -37,9 +39,16 @@ import { ScoreboardModule } from './scoreboard/scoreboard.module';
     ContestModule,
     ProfileModule,
     ProblemModule,
-    ScoreboardModule
+    ScoreboardModule,
+    DateModule
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule { }
+export class AppModule implements NestModule {
+  configure(
+    consumer: MiddlewareConsumer
+  ) {
+    consumer.apply(LoggerMiddleware).forRoutes('*');
+  }
+}

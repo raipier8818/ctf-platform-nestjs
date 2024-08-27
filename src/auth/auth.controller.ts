@@ -10,6 +10,15 @@ export class AuthController {
     private readonly authService: AuthService
   ){}
 
+  @Get()
+  @UseGuards(LocalAuthGuard)
+  async auth(@Req() req: AuthRequest){
+    return {
+      profile: req.user.profile,
+      role: req.user.role
+    }
+  }
+
   @Post('login')
   async login(@Res({ passthrough : true }) res: Response, @Body() authCredentialsDto: AuthCredentialsDto){
     const { accessToken, refreshToken } = await this.authService.login(authCredentialsDto);

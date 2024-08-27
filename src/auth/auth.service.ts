@@ -63,10 +63,12 @@ export class AuthService {
     if(!account){
       throw new UnauthorizedException('Invalid credentials');
     }
-    if(!bcrypt.compare(authCredentialsDto.password, account.password)){
+    
+    const comparePassword = await bcrypt.compare(authCredentialsDto.password, account.password);
+    if(!comparePassword){
       throw new UnauthorizedException('Invalid credentials');
     }
-
+    
     const profile = await this.profileRepository.findProfileByAccount(account._id.toString());
 
     return this.generateToken(account, profile);

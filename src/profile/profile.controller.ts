@@ -22,7 +22,6 @@ export class ProfileController {
   @UseGuards(LocalAuthGuard)
   async findOwnProfile(@Req() req: AuthRequest) {
     const { account } = req.user;
-    console.log(req.user);
     
     return this.profileService.findProfileByAccount(account);
   }

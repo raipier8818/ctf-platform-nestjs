@@ -16,5 +16,6 @@ import { ScoreboardModule } from 'src/scoreboard/scoreboard.module';
   ],
   controllers: [ContestController],
   providers: [ContestService, ContestRepository],
+  exports: [ContestService, ContestRepository]
 })
 export class ContestModule {}

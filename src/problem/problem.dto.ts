@@ -1,6 +1,6 @@
 import { Transform } from "class-transformer";
-import { ProblemDifficulty, ProblemDifficultyArr, ProblemDomain, ProblemDomainArr } from "./problem.schema";
-import { IsIn, IsNotEmpty, IsNumber, IsOptional, IsPositive, IsString } from "class-validator";
+import { ProblemDifficulty, ProblemDifficultyArr, ProblemDomain, ProblemDomainArr, ProblemStatus, ProblemStatusArr } from "./problem.schema";
+import { IsEmpty, IsIn, IsNotEmpty, IsNumber, IsOptional, IsPositive, IsString } from "class-validator";
 
 export class CreateProblemDto {
   @IsNotEmpty()
@@ -62,6 +62,11 @@ export class UpdateProblemDto {
   @IsString()
   @IsIn(ProblemDifficultyArr)
   difficulty: ProblemDifficulty;
+
+  @IsNotEmpty()
+  @IsString()
+  @IsIn(ProblemStatusArr)
+  status: ProblemStatus;
 }
 
 export class SubmitFlagDto {
@@ -104,5 +109,36 @@ export class ProblemConditions {
   @IsOptional()
   @IsString()
   @IsNotEmpty()
-  order: string;
+  order: SortOrder;
+
+  @IsEmpty()
+  status?: ProblemStatus;
 };
+
+export interface ProblemHeaderResponseDto {
+  _id: string;
+  name: string;
+  domain: ProblemDomain;
+  difficulty: ProblemDifficulty;
+  status: ProblemStatus;
+}
+
+export interface ProblemInfoResponseDto extends ProblemHeaderResponseDto {
+  description: string;
+  uri: string;
+  score: number;
+}
+
+export interface ProblemResponseDto extends ProblemInfoResponseDto {
+  flag: string;
+}
+
+export interface ProblemPageResponseDto {
+  problems: ProblemHeaderResponseDto[];
+  total: number
+  page: number;
+  limit: number;
+}
+
+export type SortType = "name" | "domain" | "difficulty";
+export type SortOrder = "asc" | "desc";

@@ -21,13 +21,16 @@ export class CreateProfileDto{
 
 export class UpdateProfileDto {
   @IsString()
+  @IsNotEmpty()
   @MaxLength(20)
   name: string;
 
   @IsString()
+  @IsNotEmpty()
   organization: string;
 
   @IsString()
+  @IsNotEmpty()
   department: string;
 }
 

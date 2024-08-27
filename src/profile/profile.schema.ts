@@ -22,6 +22,9 @@ export class Profile {
 
   @Prop({ type: [{type: Types.ObjectId, ref: 'Problem'}], required: true, default: [] })
   solvedProblems: Problem[];
+
+  @Prop({ type: Boolean, required: true, default: false })
+  initialized: boolean;
 }
 
 export const ProfileSchema = SchemaFactory.createForClass(Profile);

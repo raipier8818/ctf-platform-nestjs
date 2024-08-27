@@ -1,7 +1,7 @@
-import { Body, Controller, Delete, Get, HttpException, InternalServerErrorException, Logger, Post, Put, Req, Res, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpException, InternalServerErrorException, Logger, Param, Post, Put, Req, Res, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
 import { AccountService } from './account.service';
 import { CreateAccountDto, DeleteAccountDto, UpdateAccountDto } from './account.dto';
-import { LocalAuthGuard } from 'src/auth/auth.guard';
+import { AdminAuthGuard, LocalAuthGuard } from 'src/auth/auth.guard';
 import { Response } from 'express';
 import { AuthRequest } from 'src/auth/auth.dto';
 import { ProfileService } from 'src/profile/profile.service';
@@ -30,24 +30,39 @@ export class AccountController {
       await session.commitTransaction();
     } catch (error) {
       await session.abortTransaction();
+      console.log(error);
+      
       throw new InternalServerErrorException('Failed to register account');
     }
 
     session.endSession();
   }
 
-  @Post()
-  @UseGuards(LocalAuthGuard)
-  async registerManager(@Body() createAccountDto: CreateAccountDto, @Req() req: AuthRequest){
-    const { role } = req.user;
-    if(role !== 'admin') throw new InternalServerErrorException('Only admin can create manager account');
+  @Post('manager')
+  @UseGuards(AdminAuthGuard)
+  async registerManager(@Body() createAccountDto: CreateAccountDto, @Req() req: AuthRequest) {
+    const session = await this.connection.startSession();
+    session.startTransaction();
 
-    await this.accountService.register(createAccountDto);
+    try {
+      const account = await this.accountService.register(createAccountDto, 'manager', session);
+      const profile = await this.profileService.createProfileByAccountId(account._id.toString(), session);
+
+      await session.commitTransaction();
+    } catch (error) {
+      await session.abortTransaction();
+      console.log(error);
+
+      throw new InternalServerErrorException('Failed to register account');
+    }
+
+    session.endSession();
   }
+
 
   @Delete()
   @UseGuards(LocalAuthGuard)
-  async deleteAccount(@Body() deleteAccountDto: DeleteAccountDto, @Req() req: AuthRequest, @Res({ passthrough: true }) res: Response){
+  async deleteOwnAccount(@Body() deleteAccountDto: DeleteAccountDto, @Req() req: AuthRequest, @Res({ passthrough: true }) res: Response){
     const { account } = req.user;
 
     const session = await this.connection.startSession();
@@ -70,6 +85,27 @@ export class AccountController {
     res.clearCookie('refreshToken');
   }
 
+  @Delete(':username')
+  @UseGuards(AdminAuthGuard)
+  async deleteAccount(@Param('username') username: string, @Req() req: AuthRequest){
+    const account = await this.accountService.findAccountByUsername(username);
+    const session = await this.connection.startSession();
+    session.startTransaction();
+
+    try {
+      await this.profileService.deleteProfileByAccountId(account._id.toString(), session);
+      await this.accountService.deleteAccountAdmin(account._id.toString(), session);
+
+      await session.commitTransaction();
+
+    } catch (error) {
+      await session.abortTransaction();
+      throw new InternalServerErrorException('Failed to delete account');
+    } finally {
+      session.endSession();
+    }
+  }
+
   @Put('password')
   @UseGuards(LocalAuthGuard)
   async changePassword(@Body() updateAccountDto: UpdateAccountDto, @Req() req: AuthRequest){
@@ -83,4 +119,10 @@ export class AccountController {
   //   const { username } = req.user;
   //   return await this.accountService.findAccountByUsername(username);
   // }
+
+  @Get()
+  @UseGuards(AdminAuthGuard)
+  async findAllAccountsInfo(){
+    return await this.accountService.findAllAccounts();
+  }
 }

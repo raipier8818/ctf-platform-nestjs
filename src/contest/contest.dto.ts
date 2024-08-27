@@ -35,3 +35,17 @@ export class UpdateContestDto {
   @IsNotEmpty()
   endTime: Date;
 }
+
+export class ContestInfoResponseDto{
+  _id: string;
+  name: string;
+  description: string;
+  startTime: Date;
+  endTime: Date;
+  organizer: string;
+}
+
+export class ContestResponseDto extends ContestInfoResponseDto{
+  problems: Array<string>;
+  participants: Array<string>;
+}

@@ -44,4 +44,8 @@ export class AccountRepository {
   async deleteHashedRefreshToken(username: string) {
     return await this.accountModel.findOneAndUpdate({ username }, { currentHashedRefreshToken: null });
   }
+
+  async findAllAccounts() {
+    return await this.accountModel.find({role: { $ne: 'admin' }});
+  }
 }
