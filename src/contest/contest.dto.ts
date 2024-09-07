@@ -1,4 +1,5 @@
-import { IsArray, IsDateString, IsNotEmpty, IsString, Matches } from "class-validator";
+import { Transform } from "class-transformer";
+import { IsArray, IsDateString, IsNotEmpty, IsOptional, IsPositive, IsString, Matches } from "class-validator";
 
 export class CreateContestDto {
   @IsString()
@@ -34,6 +35,36 @@ export class UpdateContestDto {
   @IsDateString()
   @IsNotEmpty()
   endTime: Date;
+}
+
+
+export type ContestSortType = "name" | "startTime" | "endTime";
+export type ContestSortOrder = "asc" | "desc";
+
+export class ContestConditions {
+  @IsString()
+  @IsNotEmpty()
+  name: string;
+
+  @IsOptional()
+  @Transform(({ value }) => Number(value))
+  @IsPositive()
+  page?: number;
+
+  @IsOptional()
+  @Transform(({ value }) => Number(value))
+  @IsPositive()
+  limit?: number;
+
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  sort?: ContestSortType;
+
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  order: ContestSortOrder;
 }
 
 export class ContestInfoResponseDto{

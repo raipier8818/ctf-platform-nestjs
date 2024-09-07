@@ -104,12 +104,12 @@ export class ProblemConditions {
   @IsOptional()
   @IsString()
   @IsNotEmpty()
-  sort?: string;
+  sort?: ProblemSortType;
 
   @IsOptional()
   @IsString()
   @IsNotEmpty()
-  order: SortOrder;
+  order: ProblemSortOrder;
 
   @IsEmpty()
   status?: ProblemStatus;
@@ -140,5 +140,5 @@ export interface ProblemPageResponseDto {
   limit: number;
 }
 
-export type SortType = "name" | "domain" | "difficulty";
-export type SortOrder = "asc" | "desc";
+export type ProblemSortType = "name" | "domain" | "difficulty";
+export type ProblemSortOrder = "asc" | "desc";

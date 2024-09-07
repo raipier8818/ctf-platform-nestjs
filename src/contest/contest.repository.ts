@@ -2,7 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Contest, ContestDocument } from "./contest.schema";
 import { Model, Types } from "mongoose";
-import { ContestInfoResponseDto, ContestResponseDto, CreateContestDto, UpdateContestDto } from "./contest.dto";
+import { ContestConditions, ContestInfoResponseDto, ContestResponseDto, CreateContestDto, UpdateContestDto } from "./contest.dto";
 
 @Injectable()
 export class ContestRepository {
@@ -28,6 +28,31 @@ export class ContestRepository {
       participants: result.participants,
       organizer: result.organizer
     }
+  }
+
+  async findContestsByConditions(conditions: ContestConditions): Promise<ContestInfoResponseDto[]> {
+    const { page = 1, limit = 10 } = conditions;
+    const { sort = "_id", order = "asc" } = conditions;
+
+    const sortOptions: { [key: string]: 1 | -1 } = {
+      [sort]: (order === "desc" ? -1 : 1)
+    }
+    delete conditions.page;
+    delete conditions.limit;
+    delete conditions.sort;
+    delete conditions.order;
+
+    const result = await this.contestModel.find(conditions).skip((page - 1) * limit).limit(limit).select('-problems -participants').sort(sortOptions).exec();
+    return result.map(contest => {
+      return {
+        _id: contest._id.toString(),
+        name: contest.name,
+        description: contest.description,
+        startTime: contest.startTime,
+        endTime: contest.endTime,
+        organizer: contest.organizer
+      }
+    });
   }
 
   async findContestById(_id: string): Promise<ContestResponseDto> {
