@@ -1,9 +1,9 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { Document, Types } from "mongoose";
-import { Profile } from "src/profile/profile.schema";
 
 export type ContestDocument = Contest & Document;
-export type ContestStatus = 'RUNNING' | 'FINISHED' | 'UPCOMING' | 'SUSPENDED';
+export const ContestStatusArr  = ['PENDING', 'RUNNING', 'FINISHED', 'UPCOMING', 'SUSPENDED'] as const;
+export type ContestStatus = typeof ContestStatusArr[number];
 
 @Schema()
 export class Contest {
@@ -14,7 +14,7 @@ export class Contest {
   description: string;
 
   @Prop({ type: [{type: Types.ObjectId, ref: 'Problem'}], required: true, default: [] })
-  problems: string[];
+  problems: Types.ObjectId[];
 
   @Prop({ type: Date, required: true })
   startTime: Date;
@@ -22,14 +22,14 @@ export class Contest {
   @Prop({ type: Date, required: true })
   endTime: Date;
 
-  @Prop({ type: String, required: true })
+  @Prop({ type: String, required: true, default: 'PENDING' })
   status: ContestStatus;
 
   @Prop({ type: [{type: Types.ObjectId, ref: 'Profile'}], required: true, default: [] })
-  participants: string[];
+  participants: Types.ObjectId[];
 
-  @Prop({ type: Types.ObjectId, ref: 'Profile', required: true })
-  organizer: string;
+  @Prop({ type: String, required: true })
+  host: string;
 }
 
 export const ContestSchema = SchemaFactory.createForClass(Contest);

@@ -12,7 +12,8 @@ import { ScoreboardModule } from 'src/scoreboard/scoreboard.module';
     MongooseModule.forFeature([
       { name: 'Contest', schema: ContestSchema }
     ]),
-    ScoreboardModule
+    ScoreboardModule,
+    ProblemModule
   ],
   controllers: [ContestController],
   providers: [ContestService, ContestRepository],

@@ -38,6 +38,10 @@ export class CreateProblemDto {
 export class UpdateProblemDto {
   @IsNotEmpty()
   @IsString()
+  name: string;
+
+  @IsNotEmpty()
+  @IsString()
   description: string;
 
   @IsNotEmpty()
@@ -63,6 +67,13 @@ export class UpdateProblemDto {
   @IsIn(ProblemDifficultyArr)
   difficulty: ProblemDifficulty;
 
+  @IsNotEmpty()
+  @IsString()
+  @IsIn(ProblemStatusArr)
+  status: ProblemStatus;
+}
+
+export class UpdateProblemStatusDto {
   @IsNotEmpty()
   @IsString()
   @IsIn(ProblemStatusArr)

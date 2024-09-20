@@ -1,7 +1,7 @@
 import { Model, SortOrder, Types } from "mongoose";
 import { Problem, ProblemDocument } from "./problem.schema";
 import { InjectModel } from "@nestjs/mongoose";
-import { CreateProblemDto, ProblemConditions, ProblemHeaderResponseDto, ProblemInfoResponseDto, ProblemPageResponseDto, ProblemResponseDto, UpdateProblemDto } from "./problem.dto";
+import { CreateProblemDto, ProblemConditions, ProblemHeaderResponseDto, ProblemInfoResponseDto, ProblemPageResponseDto, ProblemResponseDto, UpdateProblemDto, UpdateProblemStatusDto } from "./problem.dto";
 
 export class ProblemRepository{
   constructor(
@@ -31,6 +31,19 @@ export class ProblemRepository{
       status: result.status,
       flag: result.flag,
     }
+  }
+
+  async findAllProblems(): Promise<ProblemHeaderResponseDto[]>{
+    const result = await this.problemModel.find({ status: 'ACCEPTED' }).select("-flag").exec();
+    return result.map(problem => {
+      return {
+        _id: problem._id.toString(),
+        name: problem.name,
+        domain: problem.domain,
+        difficulty: problem.difficulty,
+        status: problem.status
+      }
+    });
   }
 
   async findProblemsByConditions(conditions: ProblemConditions): Promise<ProblemPageResponseDto>{
@@ -80,7 +93,11 @@ export class ProblemRepository{
 
 
   async updateProblemById(_id: string, problem: UpdateProblemDto): Promise<void>{
-    return await this.problemModel.findByIdAndUpdate(_id, problem, { new: true });
+    return await this.problemModel.findByIdAndUpdate(_id, problem, { new: false });
+  }
+
+  async updateProblemStatusById(_id: string, status: UpdateProblemStatusDto): Promise<void>{
+    return await this.problemModel.findByIdAndUpdate(_id, { status }, { new: false });
   }
 
   async deleteProblemById(_id: string){

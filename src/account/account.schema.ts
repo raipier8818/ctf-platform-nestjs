@@ -4,7 +4,7 @@ import { Document } from "mongoose";
 
 
 export type AccountDocument = Account & Document;
-export const RoleArr = ['admin', 'user', 'manager'];
+export const RoleArr = ['admin', 'user', 'manager'] as const;
 export type Role = typeof RoleArr[number];
 
 @Schema()

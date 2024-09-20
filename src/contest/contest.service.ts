@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ContestRepository } from './contest.repository';
-import { ContestInfoResponseDto, ContestResponseDto, CreateContestDto, UpdateContestDto } from './contest.dto';
+import { ContestConditionsRequestDto, ContestConditionsDto, ContestInfoResponseDto, ContestPageResponseDto, PopulatedContestResponseDto, ContestResponseDto, CreateContestDto, UpdateContestDto } from './contest.dto';
 
 @Injectable()
 export class ContestService {
@@ -12,8 +12,12 @@ export class ContestService {
     await this.contestRepository.createContest(contest);
   }
 
-  async findContestByIdWithProblems(_id: string): Promise<ContestResponseDto>{
-    return await this.contestRepository.findContestByIdWithProblems(_id);
+  async findPopulatedContestById(_id: string): Promise<PopulatedContestResponseDto> {
+    return await this.contestRepository.findPopulatedContestById(_id);
+  }
+
+  async findContestByConditions(conditions: ContestConditionsDto): Promise<ContestPageResponseDto> {
+    return await this.contestRepository.findContestsByConditions(conditions);
   }
 
   async findContestById(_id: string): Promise<ContestResponseDto> {

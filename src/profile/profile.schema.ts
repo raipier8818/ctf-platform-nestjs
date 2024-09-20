@@ -8,7 +8,7 @@ export type ProfileDocument = Profile & Document;
 
 @Schema()
 export class Profile {
-  @Prop({ type: Types.ObjectId, ref: 'Account', required: true, unique: true })
+  @Prop({ type: Types.ObjectId, ref: 'Account', required: true })
   account: Account;
 
   @Prop({ type: String })

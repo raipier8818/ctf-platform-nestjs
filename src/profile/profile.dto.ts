@@ -1,19 +1,6 @@
 import { Transform } from "class-transformer";
 import { EQUALS, IsNotEmpty, IsOptional, IsPositive, IsString, MaxLength } from "class-validator";
 export class CreateProfileDto{
-  // @IsNotEmpty()
-  // @IsString()
-  // @MaxLength(20)
-  // name: string;
-
-  // @IsNotEmpty()
-  // @IsString()
-  // organization: string;
-
-  // @IsNotEmpty()
-  // @IsString()
-  // department: string;
-
   @IsNotEmpty()
   @IsString()
   account: string;
@@ -74,4 +61,19 @@ export class ProfileConditionsDto {
   @IsString()
   @IsNotEmpty()
   order: string;
+}
+
+
+export class ProfileHeaderResponseDto {
+  _id: string;
+  name: string;
+}
+
+export class ProfileInfoResponseDto extends ProfileHeaderResponseDto {
+  organization: string;
+  department: string;
+}
+
+export class ProfileResponseDto extends ProfileInfoResponseDto {
+  account: string;
 }

@@ -3,13 +3,13 @@ import { Document, Types } from "mongoose";
 
 export type ProblemDocument = Problem & Document;
 
-export const ProblemDomainArr = ['PWN', 'REVERSE', 'WEB', 'FORENSIC', 'MISC']
+export const ProblemDomainArr = ['PWN', 'REVERSE', 'WEB', 'FORENSIC', 'MISC'] as const;
 export type ProblemDomain = typeof ProblemDomainArr[number];
 
-export const ProblemDifficultyArr = ['EASY', 'MEDIUM', 'HARD', 'INSANE']
+export const ProblemDifficultyArr = ['EASY', 'MEDIUM', 'HARD', 'INSANE'] as const;
 export type ProblemDifficulty = typeof ProblemDifficultyArr[number];
 
-export const ProblemStatusArr = ['ACCEPTED', 'REJECTED', 'PENDING']
+export const ProblemStatusArr = ['ACCEPTED', 'REJECTED', 'PENDING'] as const;
 export type ProblemStatus = typeof ProblemStatusArr[number];
 
 

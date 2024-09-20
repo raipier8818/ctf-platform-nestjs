@@ -2,7 +2,10 @@ import { Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Contest, ContestDocument } from "./contest.schema";
 import { Model, Types } from "mongoose";
-import { ContestConditions, ContestInfoResponseDto, ContestResponseDto, CreateContestDto, UpdateContestDto } from "./contest.dto";
+import { ContestConditionsRequestDto, ContestConditionsDto, ContestInfoResponseDto, ContestPageResponseDto, PopulatedContestResponseDto, ContestResponseDto, CreateContestDto, UpdateContestDto } from "./contest.dto";
+import { ProblemHeaderResponseDto, ProblemResponseDto } from "src/problem/problem.dto";
+import { Problem, ProblemDocument } from "src/problem/problem.schema";
+import { Profile, ProfileDocument } from "src/profile/profile.schema";
 
 @Injectable()
 export class ContestRepository {
@@ -12,25 +15,47 @@ export class ContestRepository {
     await newContest.save();
   }
 
-  async findContestByIdWithProblems(_id: string): Promise<ContestResponseDto>{
-    const result = await this.contestModel.findById(_id).populate({
-      path: 'problems',
-      select: '-flag'
-    });
+  async findPopulatedContestById(_id: string): Promise<PopulatedContestResponseDto> {
+    const result: any /* fucking typscript */ = await this.contestModel.findById(_id)
+      .populate<Problem>({
+        path: 'problems',
+        model: Problem.name,
+      })
+      .populate<Profile>({
+        path: 'participants',
+        model: Profile.name,
+      })
+      .exec();
+    console.log(result);
+    
 
-    return {
+    const populated: PopulatedContestResponseDto = {
       _id: result._id.toString(),
       name: result.name,
       description: result.description,
       startTime: result.startTime,
       endTime: result.endTime,
-      problems: result.problems,
-      participants: result.participants,
-      organizer: result.organizer
+      problems: result.problems.map((problem: any) => {
+        return {
+          _id: problem._id.toString(),
+          name: problem.name,
+          domain: problem.domain,
+          difficulty: problem.difficulty,
+          status: problem.status
+        }
+      }),
+      participants: result.participants.map((participant: any) => {
+        return {
+          _id: participant._id.toString(),
+          name: participant.name
+        }
+      }),
+      host: result.host,
+      status: result.status
     }
-  }
-
-  async findContestsByConditions(conditions: ContestConditions): Promise<ContestInfoResponseDto[]> {
+    return populated;
+  }  
+  async findContestsByConditions(conditions: ContestConditionsDto): Promise<ContestPageResponseDto> {
     const { page = 1, limit = 10 } = conditions;
     const { sort = "_id", order = "asc" } = conditions;
 
@@ -43,16 +68,23 @@ export class ContestRepository {
     delete conditions.order;
 
     const result = await this.contestModel.find(conditions).skip((page - 1) * limit).limit(limit).select('-problems -participants').sort(sortOptions).exec();
-    return result.map(contest => {
-      return {
-        _id: contest._id.toString(),
-        name: contest.name,
-        description: contest.description,
-        startTime: contest.startTime,
-        endTime: contest.endTime,
-        organizer: contest.organizer
-      }
-    });
+    const total = await this.contestModel.countDocuments(conditions);
+    return {
+      limit,
+      page,
+      total,
+      contests: result.map((contest: ContestDocument) => {
+        return {
+          _id: contest._id.toString(),
+          name: contest.name,
+          description: contest.description,
+          startTime: contest.startTime,
+          endTime: contest.endTime,
+          host: contest.host,
+          status: contest.status
+        }
+      })
+    } ;
   }
 
   async findContestById(_id: string): Promise<ContestResponseDto> {
@@ -63,9 +95,10 @@ export class ContestRepository {
       description: result.description,
       startTime: result.startTime,
       endTime: result.endTime,
-      problems: result.problems,
-      participants: result.participants,
-      organizer: result.organizer
+      problems: result.problems.map(problem => problem.toString()),
+      participants: result.participants.map(participant => participant.toString()),
+      host: result.host,
+      status: result.status
     }
   }
 
@@ -78,7 +111,8 @@ export class ContestRepository {
         description: contest.description,
         startTime: contest.startTime,
         endTime: contest.endTime,
-        organizer: contest.organizer
+        host: contest.host,
+        status: contest.status
       }
     });
   }

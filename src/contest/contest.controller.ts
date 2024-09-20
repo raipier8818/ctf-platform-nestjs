@@ -1,23 +1,28 @@
-import { Body, Controller, Delete, Get, InternalServerErrorException, NotFoundException, Param, Post, Put, Req, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, InternalServerErrorException, NotFoundException, Param, Post, Put, Query, Req, Res, UseGuards } from '@nestjs/common';
 import { ContestService } from './contest.service';
-import { ContestInfoResponseDto, ContestResponseDto, CreateContestDto } from './contest.dto';
+import { ContestConditionsDto, ContestConditionsRequestDto, ContestInfoResponseDto, ContestPageResponseDto, PopulatedContestResponseDto as PopulatedContestResponseDto, ContestResponseDto, CreateContestDto, UpdateContestDto } from './contest.dto';
 import { LocalAuthGuard, ManagerAuthGuard } from 'src/auth/auth.guard';
 import { ScoreboardService } from 'src/scoreboard/scoreboard.service';
 import { AuthRequest } from 'src/auth/auth.dto';
 import { CreateSubmissionDto, ScoreboardResponseDto } from 'src/scoreboard/scoreboard.dto';
 import { Response } from 'express';
+import { ProblemInfoResponseDto } from 'src/problem/problem.dto';
+import { ProblemService } from 'src/problem/problem.service';
 
 @Controller('contest')
 export class ContestController {
   constructor(
     private readonly contestService: ContestService,
     private readonly scoreboardService: ScoreboardService,
+    private readonly problemService: ProblemService
   ) {}
 
   @Post()
   @UseGuards(ManagerAuthGuard)
-  async createContest(@Body() createContestDto: CreateContestDto) {
+  async createContest(@Req() req: AuthRequest, @Body() createContestDto: CreateContestDto) {
     try {
+      const { username } = req.user;
+      createContestDto.host = username;
       await this.contestService.createContest(createContestDto);
     } catch (error) {
       console.log(error);
@@ -27,34 +32,61 @@ export class ContestController {
 
   @Get()
   @UseGuards(LocalAuthGuard)
-  async findAllContests(): Promise<ContestInfoResponseDto[]> {
-    try {
-      return await this.contestService.findAllContests();
-    } catch (error) {
-      console.log(error);
-      throw new InternalServerErrorException("Error fetching contests");
+  async findContestsByConditions(@Query() conditions: ContestConditionsRequestDto, @Req() request: AuthRequest): Promise<ContestPageResponseDto> {
+    const { role } = request.user;
+    const contestConditionsDto: ContestConditionsDto = {
+      ...conditions,
+      status: ["UPCOMING", "RUNNING", "FINISHED", "SUSPENDED"]
     }
+
+    if (role === "manager") {
+      delete contestConditionsDto.status;
+    }
+    
+    return await this.contestService.findContestByConditions(contestConditionsDto);
   }
 
   @Get(':id')
   @UseGuards(LocalAuthGuard)
   async findContestById(@Param('id') id: string): Promise<ContestResponseDto> {
-    try {
-      const contest = await this.contestService.findContestByIdWithProblems(id);
-      if(contest.startTime > new Date()) {
-        delete contest.problems;
-      }
-  
-      return contest;
-    } catch (error) {
-      console.log(error);
-      throw new InternalServerErrorException("Error fetching contest");
+    const result = await this.contestService.findContestById(id);
+    if (!result) {
+      throw new NotFoundException("Contest not found");
     }
+    return result;
+  }
+
+  @Get(':id/populate')
+  @UseGuards(LocalAuthGuard)
+  async findPopulatedContestById(@Param('id') id: string, @Req() request: AuthRequest): Promise<PopulatedContestResponseDto> {
+    const result = await this.contestService.findPopulatedContestById(id);
+    const { role } = request.user;
+    
+    if (role === "user" && result.status !== "RUNNING") {
+      result.problems = [];
+    }
+
+    return result;
+  }
+
+  @Get(":id/problem/:problem")
+  @UseGuards(LocalAuthGuard)
+  async findContestProblemById(@Param('id') id: string, @Param('problem') problem: string): Promise<ProblemInfoResponseDto> {
+    const contestResult = await this.contestService.findContestById(id);
+    if (!contestResult) {
+      throw new NotFoundException("Contest not found");
+    }
+    
+    if (!contestResult.problems.includes(problem)) {
+      throw new NotFoundException("Problem not found in contest");
+    }
+
+    return await this.problemService.findProblemById(problem);
   }
 
   @Put(':id')
   @UseGuards(ManagerAuthGuard)
-  async updateContestById(@Param('id') id: string, @Body() updateContestDto: CreateContestDto): Promise<void> {
+  async updateContestById(@Param('id') id: string, @Body() updateContestDto: UpdateContestDto): Promise<void> {
     try {
       await this.contestService.updateContestById(id, updateContestDto);
     } catch (error) {
@@ -67,6 +99,8 @@ export class ContestController {
   @UseGuards(ManagerAuthGuard)
   async updateProblemInContest(@Param('id') id: string, @Body() problems: Array<string>) {
     try {
+      console.log(problems);
+      
       return await this.contestService.updateProblemInContest(id, problems);
     } catch (error) {
       console.log(error);
@@ -86,7 +120,6 @@ export class ContestController {
       throw new InternalServerErrorException("Error submitting flag");
     }
   }
-
 
   @Put(':id/register')
   @UseGuards(LocalAuthGuard)
