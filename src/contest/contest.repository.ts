@@ -67,8 +67,13 @@ export class ContestRepository {
     delete conditions.sort;
     delete conditions.order;
 
-    const result = await this.contestModel.find(conditions).skip((page - 1) * limit).limit(limit).select('-problems -participants').sort(sortOptions).exec();
-    const total = await this.contestModel.countDocuments(conditions);
+    const query = this.contestModel.find({
+      name: conditions.name ? { $regex: conditions.name, $options: "i" } : { $exists: true },
+    }).sort(sortOptions);
+
+    const total = await this.contestModel.countDocuments(query);
+    const result = await query.skip((page - 1) * limit).limit(limit);
+
     return {
       limit,
       page,
